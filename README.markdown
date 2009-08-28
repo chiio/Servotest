@@ -10,3 +10,9 @@ Contents
 --------
 
 At the moment, only the file **servo_test.rb**.
+
+Example
+-------
+
+This picture rapresent the result of the first campaign of experiment.
+![Result](http://cloud.github.com/downloads/chiio/Servotest/Results.jpg "Result")

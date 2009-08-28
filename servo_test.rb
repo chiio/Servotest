@@ -22,7 +22,8 @@ sp.puts "#{iang}i"
 sp.puts "#{fang}f"
 
 data = Array.new()
-
+puts "Torque [Nm]:"
+torque = gets
 time.each_with_index do |period,k|
 
 data << {:time => Array.new(),
@@ -85,6 +86,10 @@ File.open("servotest.r", "w") do |f|
 	end
 	f.puts "plot(omegaMean,omegaMax,\"b\")"
 	f.puts "close.screen(all = TRUE)"
+	f.puts "x <- matrix(nrow = 1, ncol = 2)"
+	f.puts "x[1,1] = max(omegaMax)"
+	f.puts "x[1,2] = #{torque}"	
+	f.puts "write(x, file = \"results.dat\", append = TRUE, sep = \" \")"
 end
 
 exec "R --vanilla -q < servotest.r"
