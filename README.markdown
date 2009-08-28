@@ -9,7 +9,8 @@ Servotest is a part of a RubyRobot Project that provides to test the performance
 Contents
 --------
 
-At the moment, only the file **servo_test.rb**.
+* **servo_test.pde** the sketch for Arduino
+* **servo_test.rb** the Ruby script.
 
 Example
 -------
