@@ -4,7 +4,7 @@ require "serialport"
 running = true
 
 begin
-	port_file = "/dev/ttyUSB0"
+	port_file = "/dev/ttyUSB2"
 	sp = SerialPort.new(port_file, 57600, 8, 1, SerialPort::NONE)
 rescue
 	warn "ERROR: No device connected."
@@ -15,6 +15,7 @@ iang = 20
 fang = 100
 time = [5000,3500,2500,1750,1000,500,250,100,50,10]
 omegaMean = Array.new()
+
 time.each_with_index {|t,k| omegaMean[k] = (fang-iang)/t.to_f}
 
 sp.puts "r"
@@ -24,6 +25,7 @@ sp.puts "#{fang}f"
 data = Array.new()
 puts "Torque [Nm]:"
 torque = gets
+
 time.each_with_index do |period,k|
 
 data << {:time => Array.new(),
