@@ -2,9 +2,12 @@ require "rubygems"
 require "serialport"
 
 running = true
+resp    = "y"
+STDOUT.sync = true
+system "clear"
 
 begin
-	port_file = "/dev/ttyUSB2"
+	port_file = "/dev/ttyUSB0"
 	sp = SerialPort.new(port_file, 57600, 8, 1, SerialPort::NONE)
 rescue
 	warn "ERROR: No device connected."
@@ -22,8 +25,13 @@ sp.puts "r"
 sp.puts "#{iang}i"
 sp.puts "#{fang}f"
 
+print "What's the name of servomotor? : "
+motorname = gets
+
+while resp == "y"
+
 data = Array.new()
-puts "Torque [Nm]:"
+print "Torque [Nm] : "
 torque = gets
 
 time.each_with_index do |period,k|
@@ -38,6 +46,7 @@ sleep 0.1
 sp.puts "s"
 sleep 0.1
 
+print "Test #{k}..."
 while running
 	sleep 0.05
 	line = sp.gets
@@ -56,6 +65,7 @@ sp.puts "r"
 #puts "Press ENTER to continue"
 #gets
 sleep 1
+puts " complete!"
 running = true
 end
 
@@ -67,8 +77,10 @@ maxDerivFunction = ["maxDeriv <- function (time,angle) {\n",
 					"dc[i] = (angle[i+2]-angle[i])/(time[i+2]-time[i])}\n",
 					"max(dc) }" ]
 
-File.open("servotest.r", "w") do |f| 
+filename = [motorname.chomp,"-",torque.to_s.chomp,".r"].join
+File.open(filename, "w") do |f| 
 	f.puts "rm(list=ls(all=TRUE));"
+	f.puts "pdf(\"#{motorname.chomp}.pdf\", paper=\"a4r\")"
 	f.puts "omegaMean = c(#{omegaMean.join(",")})"
 	f.puts "omegaMax = c(1:#{omegaMean.length})"
 	f.puts maxDerivFunction
@@ -94,5 +106,28 @@ File.open("servotest.r", "w") do |f|
 	f.puts "write(x, file = \"results.dat\", append = TRUE, sep = \" \")"
 end
 
-exec "R --vanilla -q < servotest.r"
+command = ["R --vanilla -q < ", filename].join
+system command
 
+print "Do you want to do another test? <y/n> : "
+resp = gets.chomp
+
+end
+
+filename = [motorname.chomp,".r"].join
+File.open(filename, "w") do |f|
+	f.puts "rm(list=ls(all=TRUE));"
+	f.puts "df <- read.table(\"results.dat\", header=TRUE)"
+	f.puts "attach(df)"
+	f.puts "df.lm <- lm(torque ~ omegaMax, data = df)"
+	f.puts "sum <- summary(df.lm)"
+	f.puts "write(coefficients(df.lm), file = \"results.dat\", append = TRUE, sep = \" \")"
+	f.puts "plot(omegaMax,torque,main=\"Characteristic curve of the servomotor\")"
+	f.puts "plot(df.lm)"
+	f.puts "detach(df)"
+end
+
+command = ["R --vanilla -q < ", filename].join
+system command
+
+puts "Finish."
