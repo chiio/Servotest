@@ -24,7 +24,7 @@ SLCD lcd = SLCD(numRows, numCols);
 // Constants
 unsigned int const PERIOD = 5; // Period in ms
 unsigned int const LOOP_DELAY = 20; // Main loop delay
-unsigned int const PIN_SERVO = 30;
+unsigned int const PIN_SERVO = 50;
 unsigned int const PIN_POT = 7;
  
 MegaServo Servo;
@@ -34,7 +34,7 @@ bool running = false;
 bool finished = false;
 unsigned long start;
 unsigned int iang = 20;
-unsigned int fang = 160;
+unsigned int fang = 120;
 unsigned int ang  = 0;
 unsigned int potvalue;
 float time = 0;

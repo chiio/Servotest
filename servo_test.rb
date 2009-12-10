@@ -2,6 +2,7 @@ require "rubygems"
 require "serialport"
 
 running = true
+repeat  = "n"
 resp    = "y"
 STDOUT.sync = true
 system "clear"
@@ -31,8 +32,10 @@ motorname = gets
 while resp == "y"
 
 data = Array.new()
-print "Torque [Nm] : "
-torque = gets
+if repeat != "y"
+	print "Torque [Nm] : "
+	torque = gets
+end	
 
 time.each_with_index do |period,k|
 
@@ -77,10 +80,17 @@ maxDerivFunction = ["maxDeriv <- function (time,angle) {\n",
 					"dc[i] = (angle[i+2]-angle[i])/(time[i+2]-time[i])}\n",
 					"max(dc) }" ]
 
+resultsfn = [motorname.chomp,"-results.dat"].join
+if !File.exist? resultsfn
+	File.open(resultsfn,"w") do |f|
+		f.puts "omegaMax torque"
+	end
+end
+
 filename = [motorname.chomp,"-",torque.to_s.chomp,".r"].join
-File.open(filename, "w") do |f| 
+File.open(filename, "a") do |f| 
 	f.puts "rm(list=ls(all=TRUE));"
-	f.puts "pdf(\"#{motorname.chomp}.pdf\", paper=\"a4r\")"
+	f.puts "pdf(\"#{motorname.chomp}-#{torque.chomp}.pdf\", paper=\"a4r\")"
 	f.puts "omegaMean = c(#{omegaMean.join(",")})"
 	f.puts "omegaMax = c(1:#{omegaMean.length})"
 	f.puts maxDerivFunction
@@ -102,28 +112,36 @@ File.open(filename, "w") do |f|
 	f.puts "close.screen(all = TRUE)"
 	f.puts "x <- matrix(nrow = 1, ncol = 2)"
 	f.puts "x[1,1] = max(omegaMax)"
-	f.puts "x[1,2] = #{torque}"	
-	f.puts "write(x, file = \"results.dat\", append = TRUE, sep = \" \")"
+	f.puts "x[1,2] = #{torque}"
+	f.puts "write(x, file = \"#{resultsfn}\", append = TRUE, sep = \" \")"
 end
 
-command = ["R --vanilla -q < ", filename].join
-system command
+print "Do you want to repeat this test? <y/n> : "
+repeat = gets.chomp
 
-print "Do you want to do another test? <y/n> : "
-resp = gets.chomp
-
+if repeat != "y"
+	command = ["R --vanilla -q < ", filename].join
+	system command
+	print "Do you want to do another test? <y/n> : "
+	resp = gets.chomp
+else
+	resp = "y"
+end
 end
 
-filename = [motorname.chomp,".r"].join
+filename = [motorname.chomp,"-results.r"].join
 File.open(filename, "w") do |f|
 	f.puts "rm(list=ls(all=TRUE));"
-	f.puts "df <- read.table(\"results.dat\", header=TRUE)"
+	f.puts "pdf(\"#{motorname.chomp}-results.pdf\", paper=\"a4r\")"	
+	f.puts "df <- read.table(\"#{resultsfn}\", header=TRUE)"
 	f.puts "attach(df)"
 	f.puts "df.lm <- lm(torque ~ omegaMax, data = df)"
 	f.puts "sum <- summary(df.lm)"
-	f.puts "write(coefficients(df.lm), file = \"results.dat\", append = TRUE, sep = \" \")"
-	f.puts "plot(omegaMax,torque,main=\"Characteristic curve of the servomotor\")"
-	f.puts "plot(df.lm)"
+	f.puts "write(\"-------------\", file = \"#{resultsfn}\", append = TRUE)"
+	f.puts "write(\"m:     q:\", file = \"#{resultsfn}\", append = TRUE)"
+	f.puts "write(coefficients(df.lm), file = \"#{resultsfn}\", append = TRUE, sep = \" \")"
+	f.puts "plot(omegaMax,torque,main=\"Characteristic curve of the servomotor #{motorname.chomp}\",xlab=\"omega [°/ms]\",ylab=\"torque [Nm]\")"
+	f.puts "abline(df.lm,lwd=3)"
 	f.puts "detach(df)"
 end
 
