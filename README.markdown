@@ -11,6 +11,7 @@ Contents
 
 * **servo_test.pde** the sketch for Arduino
 * **servo_test.rb** the Ruby script.
+* **range.txt** the work's range of our servos
 
 Example
 -------
