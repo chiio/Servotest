@@ -4,6 +4,7 @@ require "serialport"
 running = true
 repeat  = "n"
 resp    = "y"
+
 STDOUT.sync = true
 system "clear"
 
@@ -29,8 +30,19 @@ sp.puts "#{fang}f"
 print "What's the name of servomotor? : "
 motorname = gets
 
+resultsfn = [motorname.chomp,"-results.dat"].join
+logfile   = [motorname.chomp,"-results.log"].join
+
+if File.exist? resultsfn
+	last = File.open(resultsfn) { |f| f.extend(Enumerable).inject { |_,ln| ln }}
+	order = last.split[0].to_i
+else
+	order = 0
+end
+		
 while resp == "y"
 
+order +=1
 data = Array.new()
 if repeat != "y"
 	print "Torque [Nm] : "
@@ -80,10 +92,9 @@ maxDerivFunction = ["maxDeriv <- function (time,angle) {\n",
 					"dc[i] = (angle[i+2]-angle[i])/(time[i+2]-time[i])}\n",
 					"max(dc) }" ]
 
-resultsfn = [motorname.chomp,"-results.dat"].join
 if !File.exist? resultsfn
 	File.open(resultsfn,"w") do |f|
-		f.puts "omegaMax torque"
+		f.puts "order omegaMax torque"
 	end
 end
 
@@ -110,9 +121,10 @@ File.open(filename, "a") do |f|
 	end
 	f.puts "plot(omegaMean,omegaMax,\"b\")"
 	f.puts "close.screen(all = TRUE)"
-	f.puts "x <- matrix(nrow = 1, ncol = 2)"
-	f.puts "x[1,1] = max(omegaMax)"
-	f.puts "x[1,2] = #{torque}"
+	f.puts "x <- matrix(nrow = 1, ncol = 3)"
+	f.puts "x[1,1] = #{order}"
+	f.puts "x[1,2] = max(omegaMax)"
+	f.puts "x[1,3] = #{torque}"
 	f.puts "write(x, file = \"#{resultsfn}\", append = TRUE, sep = \" \")"
 end
 
@@ -136,12 +148,16 @@ File.open(filename, "w") do |f|
 	f.puts "df <- read.table(\"#{resultsfn}\", header=TRUE)"
 	f.puts "attach(df)"
 	f.puts "df.lm <- lm(torque ~ omegaMax, data = df)"
-	f.puts "sum <- summary(df.lm)"
-	f.puts "write(\"-------------\", file = \"#{resultsfn}\", append = TRUE)"
-	f.puts "write(\"m:     q:\", file = \"#{resultsfn}\", append = TRUE)"
-	f.puts "write(coefficients(df.lm), file = \"#{resultsfn}\", append = TRUE, sep = \" \")"
+	f.puts "coef <- coefficients(df.lm)"
 	f.puts "plot(omegaMax,torque,main=\"Characteristic curve of the servomotor #{motorname.chomp}\",xlab=\"omega [°/ms]\",ylab=\"torque [Nm]\")"
-	f.puts "abline(df.lm,lwd=3)"
+	f.puts "abline(df.lm,lwd=3)"	
+	f.puts "df.lm <- lm(torque ~ omegaMax * order, data = df)"
+	f.puts "write(\"Coefficient:\", file = \"#{logfile}\", append = FALSE)"
+	f.puts "write(\"q:\tm:\", file = \"#{logfile}\", append = TRUE)"
+	f.puts "write(coef, file = \"#{logfile}\", append = TRUE, sep = \"\t\")"
+	f.puts "write(\"---\", file = \"#{logfile}\", append = TRUE)"
+	f.puts "write(\"Anova:\", file = \"#{logfile}\", append = TRUE)"
+	f.puts "write.table(anova(df.lm),file = \"#{logfile}\", append = TRUE, sep = \"\t\")"
 	f.puts "detach(df)"
 end
 

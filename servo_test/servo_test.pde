@@ -89,7 +89,9 @@ void status()
 void setup() {
   Serial.begin(BAUD);
   lcd.init();
-  Servo.attach(PIN_SERVO,785,2188); // BLS452
+  //Servo.attach(PIN_SERVO,785,2188); // BLS452
+  //Servo.attach(PIN_SERVO,782,2186); // S9157
+  Servo.attach(PIN_SERVO,782,2182); // BLS551
   
   MsTimer2::set(PERIOD, pulse);
   lcd.clear();
