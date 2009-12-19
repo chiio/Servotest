@@ -112,14 +112,14 @@ File.open(filename, "a") do |f|
 		if graph
 			f.puts "split.screen(c(2,1), erase = TRUE)"
 			f.puts "screen(1)"	
-			f.puts "plot(time,measured_angle, main=\"#{iang} -> #{fang} in #{time[i]} ms\")"
+			f.puts "plot(time,measured_angle, main=\"#{iang} -> #{fang} in #{time[i]} ms\", xlab=\"time [ms]\", ylab=\"measured angle [°]\")"
 			f.puts "screen(2)"
-			f.puts "plot(theoric_angle,measured_angle)"
+			f.puts "plot(theoric_angle,measured_angle, xlab=\"theoric angle [°]\", ylab=\"measured angle [°]\")"
 			f.puts "close.screen(all = TRUE)"
 		end
 		f.puts "omegaMax[#{i+1}] = maxDeriv(time,measured_angle)"
 	end
-	f.puts "plot(omegaMean,omegaMax,\"b\")"
+	f.puts "plot(omegaMean,omegaMax,\"b\", xlab=\"omega mean [°]\", ylab=\"omega max [°]\")"
 	f.puts "close.screen(all = TRUE)"
 	f.puts "x <- matrix(nrow = 1, ncol = 3)"
 	f.puts "x[1,1] = #{order}"
